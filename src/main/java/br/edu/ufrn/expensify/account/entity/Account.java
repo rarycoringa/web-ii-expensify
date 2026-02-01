@@ -2,8 +2,10 @@ package br.edu.ufrn.expensify.account.entity;
 
 import java.util.UUID;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import br.edu.ufrn.expensify.auth.entity.User;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -22,7 +24,8 @@ public class Account {
     private UUID id;
 
     @NotNull
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
 
     @NotNull

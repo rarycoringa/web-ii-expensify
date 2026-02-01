@@ -1,4 +1,4 @@
-package br.edu.ufrn.expensify.account.config;
+package br.edu.ufrn.expensify.config;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -6,10 +6,10 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import br.edu.ufrn.expensify.account.exception.AccountNotFoundException;
-import br.edu.ufrn.expensify.account.record.ErrorResponse;
+import br.edu.ufrn.expensify.record.ErrorResponse;
 
 @RestControllerAdvice
-public class AccountRestExceptionHandler {
+public class RestExceptionHandler {
     
     @ExceptionHandler(AccountNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleAccountNotFound(AccountNotFoundException e) {
