@@ -47,7 +47,7 @@ public class AccountService {
     public Account saveAccount(Account account) {
         User user = authService.getAuthenticatedUser();
 
-        logger.info("Creating account for user: {}", user.getUsername());
+        logger.info("Creating account: {} for user: {}", account, user.getUsername());
         
         account.setUser(user);
         
@@ -55,9 +55,7 @@ public class AccountService {
     }
 
     public Account updateAccount(Account account) {
-        User user = authService.getAuthenticatedUser();
-
-        logger.info("Updating account with id: {} for user: {}", account.getId(), user.getUsername());;
+        logger.info("Updating account with id: {} for user: {}", account.getId(), account.getUser().getUsername());
 
         return accountRepository.save(account);
     }
@@ -68,6 +66,26 @@ public class AccountService {
         logger.info("Deleting account with id: {} for user: {}", id, user.getUsername());
 
         accountRepository.deleteByIdAndUser(id, user);
+    }
+
+    public void increaseBalance(UUID accountId, Double amount) {
+        Account account = getAccountById(accountId);
+
+        account.increaseBalance(amount);
+
+        accountRepository.save(account);
+
+        logger.info("Increased balance of account with id: {} by amount: {}", accountId, amount);
+    }
+
+    public void decreaseBalance(UUID accountId, Double amount) {
+        Account account = getAccountById(accountId);
+
+        account.decreaseBalance(amount);
+
+        accountRepository.save(account);
+
+        logger.info("Decreased balance of account with id: {} by amount: {}", accountId, amount);
     }
 
 }
