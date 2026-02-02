@@ -50,7 +50,7 @@ public class TransactionService {
         this.authService = authService;
     }
 
-    public List<Transaction> getAllTransactions() {
+    public List<Transaction> retrieveAllTransactions() {
         User user = authService.getAuthenticatedUser();
 
         logger.info("Fetching all transactions for user: {}", user.getUsername());
@@ -58,7 +58,7 @@ public class TransactionService {
         return transactionRepository.findAllByUser(user);
     }
 
-    public Transaction getTransactionById(UUID id) {
+    public Transaction retrieveTransaction(UUID id) {
         User user = authService.getAuthenticatedUser();
 
         logger.info("Fetching transaction with id: {} for user: {}", id, user.getUsername());
@@ -67,23 +67,9 @@ public class TransactionService {
             .orElseThrow(() -> new TransactionNotFoundException("Transaction not found with id: " + id + " for user: " + user.getUsername()));
     }
 
-    public Transaction saveTransaction(Transaction transaction) {
-        User user = authService.getAuthenticatedUser();
-        
-        transaction.setUser(user);
+    // Income methods
 
-        logger.info("Saving transaction: {}", transaction);
-
-        return transactionRepository.save(transaction);
-    }
-
-    public Transaction updateTransaction(Transaction transaction) {
-        logger.info("Updating transaction: {}", transaction);
-    
-        return transactionRepository.save(transaction);
-    }
-
-    public List<Income> getAllIncomes() {
+    public List<Income> retrieveAllIncomes() {
         User user = authService.getAuthenticatedUser();
 
         logger.info("Fetching all incomes for user: {}", user.getUsername());
@@ -91,7 +77,7 @@ public class TransactionService {
         return incomeRepository.findAllByUser(user);
     }
 
-    public Income getIncomeById(UUID id) {
+    public Income retrieveIncome(UUID id) {
         User user = authService.getAuthenticatedUser();
 
         logger.info("Fetching income with id: {} for user: {}", id, user.getUsername());
@@ -100,23 +86,29 @@ public class TransactionService {
             .orElseThrow(() -> new TransactionNotFoundException("Income not found with id: " + id + " for user: " + user.getUsername()));
     }
 
-    public Income saveIncome(Income income) {
+    public Income createIncome(Income income) {
         User user = authService.getAuthenticatedUser();
-
         income.setUser(user);
 
-        logger.info("Saving income: {}", income);
+        Income createdIncome = incomeRepository.save(income);
         
-        return incomeRepository.save(income);
+        accountService.increaseBalance(createdIncome.getAccount().getId(), createdIncome.getAmount());
+
+        logger.info("Created income: {}", createdIncome);
+
+        return createdIncome;
     }
 
-    public Income updateIncome(Income income) {
-        logger.info("Updating income: {}", income);
-        
-        return incomeRepository.save(income);
-    }
+    public void deleteIncome(Income income) {
+        accountService.decreaseBalance(income.getAccount().getId(), income.getAmount());
+        incomeRepository.delete(income);
 
-    public List<Expense> getAllExpenses() {
+        logger.info("Deleted income: {}", income);
+    }
+    
+    // Expense methods
+
+    public List<Expense> retrieveAllExpenses() {
         User user = authService.getAuthenticatedUser();
 
         logger.info("Fetching all expenses for user: {}", user.getUsername());
@@ -124,7 +116,7 @@ public class TransactionService {
         return expenseRepository.findAllByUser(user);
     }
 
-    public Expense getExpenseById(UUID id) {
+    public Expense retrieveExpense(UUID id) {
         User user = authService.getAuthenticatedUser();
 
         logger.info("Fetching expense with id: {} for user: {}", id, user.getUsername());
@@ -133,79 +125,18 @@ public class TransactionService {
             .orElseThrow(() -> new TransactionNotFoundException("Expense not found with id: " + id + " for user: " + user.getUsername()));
     }
 
-    public Expense saveExpense(Expense expense) {
+    public Expense createExpense(Expense expense) {
         User user = authService.getAuthenticatedUser();
-
         expense.setUser(user);
 
-        logger.info("Saving expense: {}", expense);
+        Expense createdExpense = expenseRepository.save(expense);
         
-        return expenseRepository.save(expense);
+        accountService.decreaseBalance(createdExpense.getAccount().getId(), createdExpense.getAmount());
+
+        logger.info("Created expense: {}", createdExpense);
+
+        return createdExpense;
     }
-
-    public Expense updateExpense(Expense expense) {
-        logger.info("Updating expense: {}", expense);
-        
-        return expenseRepository.save(expense);
-    }
-
-    public List<Transfer> getAllTransfers() {
-        User user = authService.getAuthenticatedUser();
-
-        logger.info("Fetching all transfers for user: {}", user.getUsername());
-    
-        return transferRepository.findAllByUser(user);
-    }
-
-    public Transfer getTransferById(UUID id) {
-        User user = authService.getAuthenticatedUser();
-
-        logger.info("Fetching transfer with id: {} for user: {}", id, user.getUsername());
-    
-        return transferRepository.findByIdAndUser(id, user)
-            .orElseThrow(() -> new TransactionNotFoundException("Transfer not found with id: " + id + " for user: " + user.getUsername()));
-    }
-
-    public Transfer saveTransfer(Transfer transfer) {
-        User user = authService.getAuthenticatedUser();
-
-        transfer.setUser(user);
-
-        logger.info("Saving transfer: {}", transfer);
-        
-        return transferRepository.save(transfer);
-    }
-
-    public Transfer updateTransfer(Transfer transfer) {
-        logger.info("Updating transfer: {}", transfer);
-        
-        return transferRepository.save(transfer);
-    }
-
-    public void createIncome(Income income) {
-        saveIncome(income);
-        accountService.increaseBalance(income.getAccount().getId(), income.getAmount());
-
-        logger.info("Created income: {}", income);
-    }
-
-    // public void updateIncome(Income income) {};
-
-    public void deleteIncome(Income income) {
-        accountService.decreaseBalance(income.getAccount().getId(), income.getAmount());
-        incomeRepository.delete(income);
-
-        logger.info("Deleted income: {}", income);
-    }
-
-    public void createExpense(Expense expense) {
-        saveExpense(expense);
-        accountService.decreaseBalance(expense.getAccount().getId(), expense.getAmount());
-
-        logger.info("Created expense: {}", expense);
-    }
-
-    // public void updateExpense(Expense expense) {};
 
     public void deleteExpense(Expense expense) {
         accountService.increaseBalance(expense.getAccount().getId(), expense.getAmount());
@@ -214,15 +145,38 @@ public class TransactionService {
         logger.info("Deleted expense: {}", expense);
     }
 
-    public void createTransfer(Transfer transfer) {
-        saveTransfer(transfer);
-        accountService.decreaseBalance(transfer.getSourceAccount().getId(), transfer.getAmount());
-        accountService.increaseBalance(transfer.getDestinationAccount().getId(), transfer.getAmount());
+    // Transfer methods
 
-        logger.info("Created transfer: {}", transfer);
+    public List<Transfer> retrieveAllTransfers() {
+        User user = authService.getAuthenticatedUser();
+
+        logger.info("Fetching all transfers for user: {}", user.getUsername());
+    
+        return transferRepository.findAllByUser(user);
     }
 
-    // public void updateTransfer(Transfer transfer) {};
+    public Transfer retrieveTransfer(UUID id) {
+        User user = authService.getAuthenticatedUser();
+
+        logger.info("Fetching transfer with id: {} for user: {}", id, user.getUsername());
+    
+        return transferRepository.findByIdAndUser(id, user)
+            .orElseThrow(() -> new TransactionNotFoundException("Transfer not found with id: " + id + " for user: " + user.getUsername()));
+    }
+
+    public Transfer createTransfer(Transfer transfer) {
+        User user = authService.getAuthenticatedUser();
+        transfer.setUser(user);
+
+        Transfer createdTransfer = transferRepository.save(transfer);
+
+        accountService.decreaseBalance(createdTransfer.getSourceAccount().getId(), createdTransfer.getAmount());
+        accountService.increaseBalance(createdTransfer.getDestinationAccount().getId(), createdTransfer.getAmount());
+
+        logger.info("Created transfer: {}", transfer);
+
+        return createdTransfer;
+    }
 
     public void deleteTransfer(Transfer transfer) {
         accountService.increaseBalance(transfer.getSourceAccount().getId(), transfer.getAmount());
