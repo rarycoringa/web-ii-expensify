@@ -11,6 +11,7 @@ services:
       DB_USERNAME: dummy_user
       DB_PASSWORD: dummy_password
       JWT_SECRET: zWc8nQOVADdplXUcg/ZtXgBZRq9SZY62sAFtnUDOEbg=
+      EXPENSIFY_APP_URL: http://localhost:3000
     depends_on:
       - expensify-db
     ports:
