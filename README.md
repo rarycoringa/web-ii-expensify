@@ -56,10 +56,10 @@ Stops and removes all containers.
 
 ## 🔑 Authentication
 
-### Create a New User
+### Register
 
 ```bash
-curl -X POST http://localhost:8080/api/auth/register \
+curl -X POST http://localhost:8080/auth/register \
   -H "Content-Type: application/json" \
   -d '{"username":"your_username","password":"your_password"}'
 ```
@@ -67,7 +67,7 @@ curl -X POST http://localhost:8080/api/auth/register \
 ### Login
 
 ```bash
-curl -X POST http://localhost:8080/api/auth/login \
+curl -X POST http://localhost:8080/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"your_username","password":"your_password"}'
 ```
@@ -84,15 +84,82 @@ Response:
 Include the token in the Authorization header for protected endpoints:
 
 ```bash
-curl http://localhost:8080/api/accounts \
+curl http://localhost:8080/accounts \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
 ## 📚 API Endpoints
 
 ### Authentication
-- **POST** `/api/auth/register` - Create new user account
-- **POST** `/api/auth/login` - Login and receive JWT token
+- **POST** `/auth/register` - Register new user
+  - Body: `{"username": "string", "password": "string"}`
+  - Returns: `{"id": "uuid", "username": "string"}`
+
+- **POST** `/auth/login` - Login and receive JWT token
+  - Body: `{"username": "string", "password": "string"}`
+  - Returns: `{"token": "jwt_token"}`
+
+### Accounts
+- **GET** `/accounts` - Get all accounts for authenticated user
+  - Returns: Array of accounts with `{id, name, balance}`
+
+- **GET** `/accounts/{id}` - Get account by ID
+  - Returns: `{id, name, balance}`
+
+- **POST** `/accounts` - Create new account
+  - Body: `{"name": "string", "balance": "number"}`
+  - Returns: `{id, name, balance}`
+
+- **PATCH** `/accounts/{id}` - Update account name
+  - Body: `{"name": "string"}`
+  - Returns: `{id, name, balance}`
+
+- **DELETE** `/accounts/{id}` - Delete account
+  - Returns: 204 No Content
+
+### Transactions - Incomes
+- **GET** `/transactions/incomes` - Get all incomes for authenticated user
+  - Returns: Array of incomes with `{id, description, amount, date, account_id}`
+
+- **GET** `/transactions/incomes/{id}` - Get income by ID
+  - Returns: `{id, description, amount, date, account_id}`
+
+- **POST** `/transactions/incomes` - Create new income
+  - Body: `{"description": "string", "amount": "number", "date": "string", "account_id": "uuid"}`
+  - Returns: `{id, description, amount, date, accountId}`
+
+- **DELETE** `/transactions/incomes/{id}` - Delete income
+  - Returns: 204 No Content
+
+### Transactions - Expenses
+- **GET** `/transactions/expenses` - Get all expenses for authenticated user
+  - Returns: Array of expenses with `{id, description, amount, date, account_id}`
+
+- **GET** `/transactions/expenses/{id}` - Get expense by ID
+  - Returns: `{id, description, amount, date, account_id}`
+
+- **POST** `/transactions/expenses` - Create new expense
+  - Body: `{"description": "string", "amount": "number", "date": "string", "account_id": "uuid"}`
+  - Returns: `{id, description, amount, date, account_id}`
+
+- **DELETE** `/transactions/expenses/{id}` - Delete expense
+  - Returns: 204 No Content
+
+### Transactions - Transfers
+- **GET** `/transactions/transfers` - Get all transfers for authenticated user
+  - Returns: Array of transfers with `{id, description, amount, date, source_account_id, destination_account_id}`
+
+- **GET** `/transactions/transfers/{id}` - Get transfer by ID
+  - Returns: `{id, description, amount, date, source_account_id, destination_account_id}`
+
+- **POST** `/transactions/transfers` - Create new transfer
+  - Body: `{"description": "string", "amount": "number", "date": "string", "source_account_id": "uuid", "destination_account_id": "uuid"}`
+  - Returns: `{id, description, amount, date, source_account_id, destination_account_id}`
+
+- **DELETE** `/transactions/transfers/{id}` - Delete transfer
+  - Returns: 204 No Content
+
+**Note:** All endpoints except `/auth/register` and `/auth/login` require JWT authentication. Include the token in the Authorization header: `Authorization: Bearer YOUR_JWT_TOKEN`
 
 ## ⚙️ Configuration
 
